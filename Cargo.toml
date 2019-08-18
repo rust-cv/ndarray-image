@@ -12,9 +12,10 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-image = "0.22.1"
-ndarray = "0.12.1"
+image = { version = "0.22.1", default-features = false }
+ndarray = { version = "0.12.1", default-features = false }
 
 [dev-dependencies]
 structopt = "0.2.18"
+image = "0.22.1"
 
