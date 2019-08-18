@@ -3,6 +3,13 @@ name = "ndarray-image"
 version = "0.1.0"
 authors = ["Geordon Worley <vadixidav@gmail.com>"]
 edition = "2018"
+description = "Zero-copy conversion between ndarray and image crates"
+keywords = ["ndarray", "image", "conversion"]
+categories = ["multimedia::images"]
+repository = "https://github.com/rust-photogrammetry/ndarray-image"
+documentation = "https://docs.rs/ndarray-image/"
+license = "MIT"
+readme = "README.md"
 
 [dependencies]
 image = "0.22.1"
