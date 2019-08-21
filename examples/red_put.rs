@@ -1,4 +1,3 @@
-use image::open;
 use ndarray::s;
 use ndarray_image::{open_image, save_image, Colors};
 use std::path::PathBuf;
