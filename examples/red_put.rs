@@ -1,6 +1,6 @@
 use image::open;
 use ndarray::s;
-use ndarray_image::{ImgRgb, NdColor, NdImage};
+use ndarray_image::{open_image, save_image, Colors};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -17,15 +17,9 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let image = open(opt.file).expect("unable to open input image");
-    let image = image.to_rgb();
-    let ndimage: NdColor = NdImage(&image).into();
-    let mut ndimage = ndimage.to_owned();
-    let slice = ndimage.slice_mut(s![..;10, ..;2, 0]);
-    for n in slice {
+    let mut image = open_image(opt.file, Colors::Rgb).expect("unable to open input image");
+    for n in image.slice_mut(s![..;10, ..;2, 0]) {
         *n = 255;
     }
-    let image: Option<ImgRgb> = NdImage(ndimage.view()).into();
-    let image = image.expect("failed to convert ndarray to image");
-    image.save(opt.output).expect("failed to write output");
+    save_image(opt.output, image.view(), Colors::Rgb).expect("failed to write output");
 }

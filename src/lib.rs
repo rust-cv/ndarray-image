@@ -1,10 +1,14 @@
-use image::{Bgr, Bgra, ImageBuffer, Luma, LumaA, Pixel, Primitive, Rgb, Rgba};
+use image::{
+    Bgr, Bgra, ImageBuffer, ImageError, ImageResult, Luma, LumaA, Pixel, Primitive, Rgb, Rgba,
+};
 use ndarray::ShapeBuilder;
-use ndarray::{ArrayView, Ix2, Ix3};
+use ndarray::{Array2, Array3, ArrayView, Ix2, Ix3};
 use std::ops::Deref;
+use std::path::Path;
 
 /// This newtype struct can wrap an image from either the `ndarray` or `image` crates to
 /// automatically allow them to be turned `into()` the equivalents in the other crate.
+/// This works without copying.
 pub struct NdImage<T>(pub T);
 
 pub type NdGray<'a, A = u8> = ArrayView<'a, A, Ix2>;
@@ -16,6 +20,126 @@ pub type ImgRgb<'a, A = u8> = ImageBuffer<Rgb<A>, &'a [A]>;
 pub type ImgRgba<'a, A = u8> = ImageBuffer<Rgba<A>, &'a [A]>;
 pub type ImgBgr<'a, A = u8> = ImageBuffer<Bgr<A>, &'a [A]>;
 pub type ImgBgra<'a, A = u8> = ImageBuffer<Bgra<A>, &'a [A]>;
+
+pub enum Colors {
+    Luma,
+    LumaA,
+    Rgb,
+    Rgba,
+    Bgr,
+    Bgra,
+}
+
+/// Opens a gray image using the `image` crate and loads it into a 2d array.
+/// This performs a copy.
+pub fn open_gray_image(path: impl AsRef<Path>) -> ImageResult<Array2<u8>> {
+    let image = image::open(path)?;
+    let image = image.to_luma();
+    let image: NdGray = NdImage(&image).into();
+    Ok(image.to_owned())
+}
+
+/// Opens a color image using the `image` crate and loads it into a 3d array.
+/// This performs a copy.
+pub fn open_image(path: impl AsRef<Path>, colors: Colors) -> ImageResult<Array3<u8>> {
+    let image = image::open(path)?;
+    let image = match colors {
+        Colors::Luma => {
+            let image = image.to_luma();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+        Colors::LumaA => {
+            let image = image.to_luma_alpha();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+        Colors::Rgb => {
+            let image = image.to_rgb();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+        Colors::Rgba => {
+            let image = image.to_rgba();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+        Colors::Bgr => {
+            let image = image.to_bgr();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+        Colors::Bgra => {
+            let image = image.to_bgra();
+            let image: NdColor = NdImage(&image).into();
+            image.to_owned()
+        }
+    };
+    Ok(image)
+}
+
+/// Saves a gray image using the `image` crate from a 3d array.
+pub fn save_gray_image<'a>(path: impl AsRef<Path>, image: NdGray<'a, u8>) -> ImageResult<()> {
+    let image: Option<ImgLuma> = NdImage(image.view()).into();
+    let image = image.ok_or(ImageError::FormatError(
+        "non-contiguous ndarray Array".to_owned(),
+    ))?;
+    image.save(path)?;
+    Ok(())
+}
+
+/// Saves a color image using the `image` crate from a 3d array.
+pub fn save_image<'a>(
+    path: impl AsRef<Path>,
+    image: NdColor<'a, u8>,
+    colors: Colors,
+) -> ImageResult<()> {
+    match colors {
+        Colors::Luma => {
+            let image: Option<ImgLuma> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+        Colors::LumaA => {
+            let image: Option<ImgLumaA> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+        Colors::Rgb => {
+            let image: Option<ImgRgb> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+        Colors::Rgba => {
+            let image: Option<ImgRgba> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+        Colors::Bgr => {
+            let image: Option<ImgBgr> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+        Colors::Bgra => {
+            let image: Option<ImgBgra> = NdImage(image.view()).into();
+            let image = image.ok_or(ImageError::FormatError(
+                "non-contiguous ndarray Array".to_owned(),
+            ))?;
+            image.save(path)?;
+        }
+    }
+    Ok(())
+}
 
 /// Turn grayscale images into 2d array views.
 impl<'a, C, A: 'static> Into<NdGray<'a, A>> for NdImage<&'a ImageBuffer<Luma<A>, C>>
