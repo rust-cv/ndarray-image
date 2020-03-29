@@ -79,62 +79,83 @@ pub fn open_image(path: impl AsRef<Path>, colors: Colors) -> ImageResult<Array3<
 }
 
 /// Saves a gray image using the `image` crate from a 3d array.
-pub fn save_gray_image<'a>(path: impl AsRef<Path>, image: NdGray<'a, u8>) -> ImageResult<()> {
+pub fn save_gray_image(path: impl AsRef<Path>, image: NdGray<'_, u8>) -> ImageResult<()> {
     let image: Option<ImgLuma> = NdImage(image.view()).into();
-    let image = image.ok_or(ImageError::FormatError(
-        "non-contiguous ndarray Array".to_owned(),
-    ))?;
+    let image = image.ok_or_else(|| {
+        ImageError::Decoding(image::error::DecodingError::new(
+            image::error::ImageFormatHint::Unknown,
+            "non-contiguous ndarray Array",
+        ))
+    })?;
     image.save(path)?;
     Ok(())
 }
 
 /// Saves a color image using the `image` crate from a 3d array.
-pub fn save_image<'a>(
+pub fn save_image(
     path: impl AsRef<Path>,
-    image: NdColor<'a, u8>,
+    image: NdColor<'_, u8>,
     colors: Colors,
 ) -> ImageResult<()> {
     match colors {
         Colors::Luma => {
             let image: Option<ImgLuma> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
         Colors::LumaA => {
             let image: Option<ImgLumaA> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
         Colors::Rgb => {
             let image: Option<ImgRgb> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
         Colors::Rgba => {
             let image: Option<ImgRgba> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
         Colors::Bgr => {
             let image: Option<ImgBgr> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
         Colors::Bgra => {
             let image: Option<ImgBgra> = NdImage(image.view()).into();
-            let image = image.ok_or(ImageError::FormatError(
-                "non-contiguous ndarray Array".to_owned(),
-            ))?;
+            let image = image.ok_or_else(|| {
+                ImageError::Decoding(image::error::DecodingError::new(
+                    image::error::ImageFormatHint::Unknown,
+                    "non-contiguous ndarray Array",
+                ))
+            })?;
             image.save(path)?;
         }
     }
@@ -186,8 +207,8 @@ where
 {
     fn into(self) -> Option<ImgLuma<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from slice")
             })
@@ -206,8 +227,8 @@ where
 {
     fn into(self) -> Option<ImgLuma<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 1] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 1] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
@@ -226,8 +247,8 @@ where
 {
     fn into(self) -> Option<ImgLumaA<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 2] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 2] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
@@ -246,8 +267,8 @@ where
 {
     fn into(self) -> Option<ImgRgb<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 3] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 3] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
@@ -266,8 +287,8 @@ where
 {
     fn into(self) -> Option<ImgRgba<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 4] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 4] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
@@ -286,8 +307,8 @@ where
 {
     fn into(self) -> Option<ImgBgr<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 3] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 3] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
@@ -306,8 +327,8 @@ where
 {
     fn into(self) -> Option<ImgBgra<'a, A>> {
         let NdImage(image) = self;
-        if let &[height, width, 4] = image.shape() {
-            image.into_slice().map(|slice| {
+        if let [height, width, 4] = *image.shape() {
+            image.to_slice().map(|slice| {
                 ImageBuffer::from_raw(width as u32, height as u32, slice)
                     .expect("failed to create image from raw vec")
             })
