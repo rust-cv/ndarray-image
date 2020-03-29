@@ -10,7 +10,7 @@
 [di]: https://docs.rs/ndarray-image/badge.svg
 [dl]: https://docs.rs/ndarray-image/
 
-[lo]: https://tokei.rs/b1/github/rust-photogrammetry/ndarray-image?category=code
+[lo]: https://tokei.rs/b1/github/rust-cv/ndarray-image?category=code
 
 Allows conversion between ndarray's types and image's types
 
