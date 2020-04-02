@@ -2,7 +2,7 @@ use image::{
     Bgr, Bgra, ImageBuffer, ImageError, ImageResult, Luma, LumaA, Pixel, Primitive, Rgb, Rgba,
 };
 use ndarray::ShapeBuilder;
-use ndarray::{Array2, Array3, ArrayView, Ix2, Ix3};
+use ndarray::{Array2, Array3, ArrayView, ArrayViewMut, Ix2, Ix3};
 use std::ops::Deref;
 use std::path::Path;
 
@@ -12,7 +12,9 @@ use std::path::Path;
 pub struct NdImage<T>(pub T);
 
 pub type NdGray<'a, A = u8> = ArrayView<'a, A, Ix2>;
+pub type NdGrayMut<'a, A = u8> = ArrayViewMut<'a, A, Ix2>;
 pub type NdColor<'a, A = u8> = ArrayView<'a, A, Ix3>;
+pub type NdColorMut<'a, A = u8> = ArrayViewMut<'a, A, Ix3>;
 
 pub type ImgLuma<'a, A = u8> = ImageBuffer<Luma<A>, &'a [A]>;
 pub type ImgLumaA<'a, A = u8> = ImageBuffer<LumaA<A>, &'a [A]>;
@@ -177,6 +179,23 @@ where
     }
 }
 
+/// Turn grayscale images into mutable 2d array views.
+impl<'a, C, A: 'static> Into<NdGrayMut<'a, A>> for NdImage<&'a mut ImageBuffer<Luma<A>, C>>
+where
+    A: Primitive,
+    C: Deref<Target = [A]> + AsRef<[A]>,
+{
+    fn into(self) -> NdGrayMut<'a, A> {
+        let NdImage(image) = self;
+        let (width, height) = image.dimensions();
+        let (width, height) = (width as usize, height as usize);
+        #[allow(clippy::transmute_ptr_to_ref)]
+        let slice: &'a mut [A] =
+            unsafe { std::mem::transmute(image.as_flat_samples().as_slice() as *const [A]) };
+        ArrayViewMut::from_shape((height, width).strides((width, 1)), slice).unwrap()
+    }
+}
+
 /// Turn arbitrary images into 3d array views with one dimension for the color channel.
 impl<'a, C, P: 'static, A: 'static> Into<NdColor<'a, A>> for NdImage<&'a ImageBuffer<P, C>>
 where
@@ -191,6 +210,29 @@ where
         let channels = P::CHANNEL_COUNT as usize;
         let slice: &'a [A] = unsafe { std::mem::transmute(image.as_flat_samples().as_slice()) };
         ArrayView::from_shape(
+            (height, width, channels).strides((width * channels, channels, 1)),
+            slice,
+        )
+        .unwrap()
+    }
+}
+
+/// Turn arbitrary images into mutable 3d array views with one dimension for the color channel.
+impl<'a, C, P: 'static, A: 'static> Into<NdColorMut<'a, A>> for NdImage<&'a mut ImageBuffer<P, C>>
+where
+    A: Primitive,
+    P: Pixel<Subpixel = A>,
+    C: Deref<Target = [P::Subpixel]> + AsRef<[A]>,
+{
+    fn into(self) -> NdColorMut<'a, A> {
+        let NdImage(image) = self;
+        let (width, height) = image.dimensions();
+        let (width, height) = (width as usize, height as usize);
+        let channels = P::CHANNEL_COUNT as usize;
+        #[allow(clippy::transmute_ptr_to_ref)]
+        let slice: &'a mut [A] =
+            unsafe { std::mem::transmute(image.as_flat_samples().as_slice() as *const [A]) };
+        ArrayViewMut::from_shape(
             (height, width, channels).strides((width * channels, channels, 1)),
             slice,
         )
