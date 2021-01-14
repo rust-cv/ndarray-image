@@ -1,6 +1,6 @@
 [package]
 name = "ndarray-image"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Geordon Worley <vadixidav@gmail.com>"]
 edition = "2018"
 description = "Zero-copy conversion between ndarray and image crates"
@@ -12,10 +12,10 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-image = { version = "0.23.2", default-features = false }
+image = { version = "0.23.12", default-features = false }
 ndarray = { version = "0.14.0", default-features = false }
 
 [dev-dependencies]
-structopt = "0.3.12"
-image = "0.23.2"
+structopt = "0.3.21"
+image = "0.23.12"
 
