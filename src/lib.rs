@@ -36,7 +36,7 @@ pub enum Colors {
 /// This performs a copy.
 pub fn open_gray_image(path: impl AsRef<Path>) -> ImageResult<Array2<u8>> {
     let image = image::open(path)?;
-    let image = image.to_luma();
+    let image = image.to_luma8();
     let image: NdGray = NdImage(&image).into();
     Ok(image.to_owned())
 }
@@ -47,32 +47,32 @@ pub fn open_image(path: impl AsRef<Path>, colors: Colors) -> ImageResult<Array3<
     let image = image::open(path)?;
     let image = match colors {
         Colors::Luma => {
-            let image = image.to_luma();
+            let image = image.to_luma8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }
         Colors::LumaA => {
-            let image = image.to_luma_alpha();
+            let image = image.to_luma_alpha8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }
         Colors::Rgb => {
-            let image = image.to_rgb();
+            let image = image.to_rgb8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }
         Colors::Rgba => {
-            let image = image.to_rgba();
+            let image = image.to_rgba8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }
         Colors::Bgr => {
-            let image = image.to_bgr();
+            let image = image.to_bgr8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }
         Colors::Bgra => {
-            let image = image.to_bgra();
+            let image = image.to_bgra8();
             let image: NdColor = NdImage(&image).into();
             image.to_owned()
         }

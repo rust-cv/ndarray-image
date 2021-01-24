@@ -1,3 +1,6 @@
 /target
 **/*.rs.bk
 Cargo.lock
+tags
+tags.lock
+tags.temp
