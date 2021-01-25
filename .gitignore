@@ -1,6 +1,9 @@
+# Rust
 /target
 **/*.rs.bk
 Cargo.lock
+
+# Ctags
 tags
 tags.lock
 tags.temp
