@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 image = { version = "0.23.12", default-features = false }
-ndarray = { version = "0.14.0", default-features = false }
+ndarray = { version = "0.15.3", default-features = false }
 
 [dev-dependencies]
 structopt = "0.3.21"
