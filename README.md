@@ -14,6 +14,11 @@
 
 Allows conversion between ndarray's types and image's types
 
+## Deprecated
+
+WARNING: This crate is currently deprecated in favor of https://github.com/rust-cv/nshare. Use `nshare` instead.
+This crate may eventually be repurposed, or if someone else wants to take the name, just reach out on the Rust CV Discord.
+
 This crate allows zero-copy conversion between `ArrayView` from `ndarray` and `ImageBuffer` from `image`.
 
 ## Output of `red_put` example
